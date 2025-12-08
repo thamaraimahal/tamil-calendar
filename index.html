@@ -2,7 +2,7 @@
 <html lang="ta">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
 <title>Pon Thamarai Mahal — Events Calendar</title>
 
 <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Tamil:wght@400;700&family=Nunito:wght@400;700&display=swap" rel="stylesheet">
@@ -15,79 +15,242 @@
     --disabled:#bdbdbd;
   }
 
-  body {
-    margin:0; padding:10px;
-    font-family:Nunito,sans-serif; background:#fff; color:#222;
+  * {
+    box-sizing: border-box;
   }
 
-  .header { text-align:center; margin-bottom:10px; }
-  .eng-month { font-size:18px; font-weight:700; color:var(--accent); }
-  .nav { margin-top:6px; }
+  html, body {
+    margin: 0;
+    padding: 0;
+    width: 100%;
+    height: 100%;
+    overflow-x: hidden;
+  }
+
+  body {
+    padding: 10px;
+    font-family: Nunito, sans-serif;
+    background: #fff;
+    color: #222;
+    max-width: 100%;
+  }
+
+  .header { 
+    text-align: center;
+    margin-bottom: 10px;
+  }
+  
+  .eng-month {
+    font-size: 18px;
+    font-weight: 700;
+    color: var(--accent);
+  }
+  
+  .nav {
+    margin-top: 6px;
+    display: flex;
+    justify-content: center;
+    gap: 8px;
+  }
 
   .btn {
-    font-size:13px; padding:4px 10px;
-    border:1px solid #ddd;
-    border-radius:6px;
-    background:#fff;
-    cursor:pointer;
-    margin:0 4px;
+    font-size: 13px;
+    padding: 6px 12px;
+    border: 1px solid #ddd;
+    border-radius: 6px;
+    background: #fff;
+    cursor: pointer;
+    flex: 0 1 auto;
+    white-space: nowrap;
   }
 
-  .btn:hover { background:#f8f8f8; }
+  .btn:hover {
+    background: #f8f8f8;
+  }
+
+  .btn:active {
+    background: #e8e8e8;
+  }
 
   /* Weekday labels */
   .weekdays {
-    display:grid;
-    grid-template-columns:repeat(7,1fr);
-    text-align:center;
-    font-size:12px;
-    font-weight:600;
-    color:#555;
-    margin-bottom:6px;
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    text-align: center;
+    font-size: 12px;
+    font-weight: 600;
+    color: #555;
+    margin-bottom: 6px;
+    gap: 2px;
+  }
+
+  .weekdays > div {
+    padding: 4px 2px;
   }
 
   /* Calendar */
   .calendar-grid {
-    display:grid;
-    grid-template-columns:repeat(7, 1fr);
-    gap:6px;
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    gap: 4px;
+    width: 100%;
   }
 
   .day-cell {
-    border:1px solid #eee;
-    border-radius:8px;
-    padding:6px;
-    background:#fff;
-    display:flex;
-    flex-direction:column;
-    min-height:70px;
-    box-shadow:0 1px 2px rgba(0,0,0,0.05);
+    border: 1px solid #eee;
+    border-radius: 8px;
+    padding: 6px 4px;
+    background: #fff;
+    display: flex;
+    flex-direction: column;
+    min-height: 70px;
+    box-shadow: 0 1px 2px rgba(0,0,0,0.05);
+    position: relative;
   }
 
-  .eng-daynum { font-size:14px; font-weight:700; }
-  .tamil-date { font-family:'Noto Sans Tamil'; font-size:12px; margin-top:2px; }
+  .day-cell.clickable {
+    cursor: pointer;
+    transition: transform 0.1s ease;
+  }
+
+  .day-cell.clickable:active {
+    transform: scale(0.95);
+  }
+
+  .eng-daynum {
+    font-size: 14px;
+    font-weight: 700;
+    line-height: 1.2;
+  }
+
+  .tamil-date {
+    font-family: 'Noto Sans Tamil', sans-serif;
+    font-size: 11px;
+    margin-top: 2px;
+    line-height: 1.3;
+    word-break: break-word;
+  }
 
   .status-pill {
-    margin-top:auto;
-    font-size:11px;
-    padding:2px 6px;
-    border-radius:4px;
-    color:#fff;
+    margin-top: auto;
+    font-size: 10px;
+    padding: 3px 4px;
+    border-radius: 4px;
+    color: #fff;
+    text-align: center;
+    line-height: 1;
   }
 
-  .booked { background:var(--booked); }
-  .available { background:var(--available); }
-  .disabled { background:var(--disabled); }
+  .booked { background: var(--booked); }
+  .available { background: var(--available); }
+  .disabled { background: var(--disabled); }
 
-  /* MOBILE FIXES */
-  @media (max-width:600px){
-    .calendar-grid { gap:3px; }
-    .day-cell { min-height:55px; padding:4px; }
-    .eng-daynum { font-size:11px; }
-    .tamil-date { font-size:10px; }
-    .status-pill { font-size:8px; padding:1px 3px; }
-    .eng-month { font-size:15px; }
-    .btn { font-size:11px; padding:3px 8px; }
+  /* MOBILE OPTIMIZATIONS */
+  @media (max-width: 600px) {
+    body {
+      padding: 8px;
+    }
+
+    .header {
+      margin-bottom: 8px;
+    }
+
+    .eng-month {
+      font-size: 16px;
+    }
+
+    .nav {
+      gap: 6px;
+    }
+
+    .btn {
+      font-size: 12px;
+      padding: 5px 10px;
+    }
+
+    .weekdays {
+      font-size: 10px;
+      margin-bottom: 4px;
+      gap: 2px;
+    }
+
+    .weekdays > div {
+      padding: 2px 1px;
+    }
+
+    .calendar-grid {
+      gap: 3px;
+    }
+
+    .day-cell {
+      min-height: 60px;
+      padding: 4px 2px;
+      border-radius: 6px;
+    }
+
+    .eng-daynum {
+      font-size: 12px;
+    }
+
+    .tamil-date {
+      font-size: 9px;
+      margin-top: 1px;
+    }
+
+    .status-pill {
+      font-size: 8px;
+      padding: 2px 3px;
+    }
+  }
+
+  /* EXTRA SMALL SCREENS */
+  @media (max-width: 400px) {
+    body {
+      padding: 6px;
+    }
+
+    .eng-month {
+      font-size: 14px;
+    }
+
+    .btn {
+      font-size: 11px;
+      padding: 4px 8px;
+    }
+
+    .weekdays {
+      font-size: 9px;
+    }
+
+    .calendar-grid {
+      gap: 2px;
+    }
+
+    .day-cell {
+      min-height: 55px;
+      padding: 3px 2px;
+    }
+
+    .eng-daynum {
+      font-size: 11px;
+    }
+
+    .tamil-date {
+      font-size: 8px;
+    }
+
+    .status-pill {
+      font-size: 7px;
+      padding: 2px 2px;
+    }
+  }
+
+  /* Prevent text selection on mobile */
+  .day-cell, .btn {
+    -webkit-tap-highlight-color: transparent;
+    -webkit-touch-callout: none;
+    -webkit-user-select: none;
+    user-select: none;
   }
 </style>
 </head>
@@ -241,25 +404,25 @@ function buildCalendar(booked){
       pill.textContent = 'Booked';
     }
     else {
-  pill.classList.add('available');
-  pill.textContent = 'Available';
-  cell.style.cursor = 'pointer';
+      pill.classList.add('available');
+      pill.textContent = 'Available';
+      cell.classList.add('clickable');
 
-  cell.onclick = () => {
-  const selectedDate = key;
+      cell.onclick = () => {
+        const selectedDate = key;
 
-  console.log("Clicked date:", selectedDate);
+        console.log("Clicked date:", selectedDate);
 
-  // Send to parent Wix site
-  window.parent.postMessage(
-    { 
-      type: "CALENDAR_DATE_SELECTED",
-      calendarDate: selectedDate 
-    },
-    "*"
-  );
-};
-}
+        // Send to parent Wix site
+        window.parent.postMessage(
+          { 
+            type: "CALENDAR_DATE_SELECTED",
+            calendarDate: selectedDate 
+          },
+          "*"
+        );
+      };
+    }
 
     cell.appendChild(eng);
     cell.appendChild(tamil);
