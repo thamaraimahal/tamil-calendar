@@ -246,17 +246,19 @@ function buildCalendar(booked){
   cell.style.cursor = 'pointer';
 
   cell.onclick = () => {
-    // Format clicked date as YYYY-MM-DD
-    const selectedDate = key;
+  const selectedDate = key;
 
-    // Send to parent (Wix page)
-    window.parent.postMessage(
-      {
-        calendarDate: selectedDate,
-      },
-      "*"
-    );
-  };
+  console.log("Clicked date:", selectedDate);
+
+  // Send to parent Wix site
+  window.parent.postMessage(
+    { 
+      type: "CALENDAR_DATE_SELECTED",
+      calendarDate: selectedDate 
+    },
+    "*"
+  );
+};
 }
 
     cell.appendChild(eng);
