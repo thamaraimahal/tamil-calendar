@@ -280,7 +280,7 @@
 -------------------------*/
 const ICS_URL =
   'https://api.allorigins.win/raw?url=' +
-  encodeURIComponent('https://calendar.zoho.in/ical/zz0802123037930201f54aefc105c39b4bcc3b0bee44c8067a1c1989848879096cb8a8b0788a2bc2fe24eb7256b91a3c2c0230e9cc');
+  encodeURIComponent('https://calendar.zoho.in/ical/zz08021230c4742127d24c58a9f35a59c4a3d8350113a19df6ef5d6de7971ecad8a2f106d528472555dedf1f5217caa660216a85f3');
 
 const CONTACT_URL =
   'https://thamarayaal.wixsite.com/pon-thamarai-mahal#get-in-touch';
@@ -298,7 +298,7 @@ let viewYear = today.getFullYear();
 let viewMonth = today.getMonth();
 
 /* ------------------------
-    ICS FETCH
+    ICS FETCH & PARSE (TIMEZONE-AWARE)
 -------------------------*/
 async function fetchICS(){
   try {
@@ -311,19 +311,72 @@ async function fetchICS(){
 
 function parseICS(text){
   const booked = new Set();
-  for (const line of text.split(/\r?\n/)){
-    if(line.startsWith('DTSTART')){
-      const raw = line.split(':')[1];
-      if(!raw) continue;
-      const d = raw.slice(0,8);
-      booked.add(d.slice(0,4)+'-'+d.slice(4,6)+'-'+d.slice(6,8));
+  const lines = text.split(/\r?\n/);
+  
+  for (let i = 0; i < lines.length; i++) {
+    const line = lines[i].trim();
+    
+    // Look for DTSTART lines
+    if (line.startsWith('DTSTART')) {
+      let dateStr = '';
+      
+      // Check if it's a date-time with timezone
+      if (line.includes('TZID=')) {
+        // Format: DTSTART;TZID=America/New_York:20241220T100000
+        const parts = line.split(':');
+        if (parts[1]) {
+          dateStr = parts[1];
+        }
+      } else if (line.includes(':')) {
+        // Format: DTSTART:20241220 or DTSTART:20241220T100000Z
+        const parts = line.split(':');
+        dateStr = parts[1];
+      }
+      
+      if (!dateStr) continue;
+      
+      // Parse the date string
+      let bookingDate;
+      
+      if (dateStr.includes('T')) {
+        // Date-time format: 20241220T100000 or 20241220T100000Z
+        const year = parseInt(dateStr.slice(0, 4));
+        const month = parseInt(dateStr.slice(4, 6)) - 1;
+        const day = parseInt(dateStr.slice(6, 8));
+        
+        // Create date in UTC to avoid timezone shifts
+        // We only care about the DATE, not the time
+        bookingDate = new Date(Date.UTC(year, month, day));
+      } else {
+        // Date-only format: 20241220 (already timezone-independent)
+        const year = parseInt(dateStr.slice(0, 4));
+        const month = parseInt(dateStr.slice(4, 6)) - 1;
+        const day = parseInt(dateStr.slice(6, 8));
+        
+        bookingDate = new Date(Date.UTC(year, month, day));
+      }
+      
+      // Format as YYYY-MM-DD in UTC
+      const dateKey = bookingDate.getUTCFullYear() + '-' + 
+                     String(bookingDate.getUTCMonth() + 1).padStart(2, '0') + '-' +
+                     String(bookingDate.getUTCDate()).padStart(2, '0');
+      
+      booked.add(dateKey);
+      
+      console.log('Parsed booking:', dateStr, '→', dateKey);
     }
   }
+  
   return booked;
 }
 
 function dateKey(d){
-  return d.toISOString().split('T')[0];
+  // Use local date components to create the key
+  // This ensures the date matches what the user sees on the calendar
+  const year = d.getFullYear();
+  const month = String(d.getMonth() + 1).padStart(2, '0');
+  const day = String(d.getDate()).padStart(2, '0');
+  return `${year}-${month}-${day}`;
 }
 
 /* ------------------------
@@ -404,6 +457,7 @@ function buildCalendar(booked){
     else if(booked.has(key)){
       pill.classList.add('booked');
       pill.textContent = 'Booked';
+      console.log('Showing booked for:', key);
     }
     else {
       pill.classList.add('available');
@@ -439,6 +493,9 @@ function buildCalendar(booked){
 (async ()=>{
   const ics = await fetchICS();
   const booked = parseICS(ics);
+
+  console.log('Booked dates:', Array.from(booked).sort());
+  console.log('User timezone:', Intl.DateTimeFormat().resolvedOptions().timeZone);
 
   buildCalendar(booked);
 
