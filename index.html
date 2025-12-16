@@ -51,6 +51,7 @@
     display: flex;
     justify-content: center;
     gap: 8px;
+    flex-wrap: wrap;
   }
 
   .btn {
@@ -62,6 +63,7 @@
     cursor: pointer;
     flex: 0 1 auto;
     white-space: nowrap;
+    transition: background 0.2s;
   }
 
   .btn:hover {
@@ -276,11 +278,37 @@
 
 <script>
 /* ------------------------
-   CONFIG
+   MANUAL BOOKING CONFIG
+   
+   INSTRUCTIONS:
+   Update the BOOKED_DATES array below with your booked dates.
+   Format: 'YYYY-MM-DD'
+   Example: '2024-12-25' for December 25, 2024
+   
+   To add a booking: Add the date string to the array
+   To remove a booking: Delete the date string from the array
 -------------------------*/
-const ICS_URL =
-  'https://api.allorigins.win/raw?url=' +
-  encodeURIComponent('https://calendar.zoho.in/ical/zz08021230c4742127d24c58a9f35a59c4a3d8350113a19df6ef5d6de7971ecad8a2f106d528472555dedf1f5217caa660216a85f3');
+
+const BOOKED_DATES = [
+  // January 2026
+  '2026-01-28',
+  '2026-01-30',
+  '2024-12-31',
+    
+  // February 2026
+  '2026-02-06',
+  '2026-02-19',
+  '2026-02-20',
+  '2026-02-21',
+  '2026-02-22'
+  
+  // ADD MORE DATES HERE AS NEEDED
+  // Format: 'YYYY-MM-DD'
+];
+
+/* ------------------------
+   DO NOT EDIT BELOW THIS LINE
+-------------------------*/
 
 const CONTACT_URL =
   'https://thamarayaal.wixsite.com/pon-thamarai-mahal#get-in-touch';
@@ -296,97 +324,17 @@ const monthLengths = [31,31,31,31,31,31,30,30,30,29,30,30];
 const today = new Date();
 let viewYear = today.getFullYear();
 let viewMonth = today.getMonth();
-
-/* ------------------------
-    ICS FETCH & PARSE (TIMEZONE-AWARE)
--------------------------*/
-async function fetchICS(){
-  try {
-    const res = await fetch(ICS_URL);
-    return res.ok ? await res.text() : '';
-  } catch {
-    return '';
-  }
-}
-
-function parseICS(text){
-  const booked = new Set();
-  const lines = text.split(/\r?\n/);
-  
-  for (let i = 0; i < lines.length; i++) {
-    const line = lines[i].trim();
-    
-    // Look for DTSTART lines
-    if (line.startsWith('DTSTART')) {
-      let dateStr = '';
-      
-      // Check if it's a date-time with timezone
-      if (line.includes('TZID=')) {
-        // Format: DTSTART;TZID=America/New_York:20241220T100000
-        const parts = line.split(':');
-        if (parts[1]) {
-          dateStr = parts[1];
-        }
-      } else if (line.includes(':')) {
-        // Format: DTSTART:20241220 or DTSTART:20241220T100000Z
-        const parts = line.split(':');
-        dateStr = parts[1];
-      }
-      
-      if (!dateStr) continue;
-      
-      // Parse the date string
-      let bookingDate;
-      
-      if (dateStr.includes('T')) {
-        // Date-time format: 20241220T100000 or 20241220T100000Z
-        const year = parseInt(dateStr.slice(0, 4));
-        const month = parseInt(dateStr.slice(4, 6)) - 1;
-        const day = parseInt(dateStr.slice(6, 8));
-        
-        // Create date in UTC to avoid timezone shifts
-        // We only care about the DATE, not the time
-        bookingDate = new Date(Date.UTC(year, month, day));
-      } else {
-        // Date-only format: 20241220 (already timezone-independent)
-        const year = parseInt(dateStr.slice(0, 4));
-        const month = parseInt(dateStr.slice(4, 6)) - 1;
-        const day = parseInt(dateStr.slice(6, 8));
-        
-        bookingDate = new Date(Date.UTC(year, month, day));
-      }
-      
-      // Format as YYYY-MM-DD in UTC
-      const dateKey = bookingDate.getUTCFullYear() + '-' + 
-                     String(bookingDate.getUTCMonth() + 1).padStart(2, '0') + '-' +
-                     String(bookingDate.getUTCDate()).padStart(2, '0');
-      
-      booked.add(dateKey);
-      
-      console.log('Parsed booking:', dateStr, '→', dateKey);
-    }
-  }
-  
-  return booked;
-}
+let bookedDates = new Set(BOOKED_DATES);
 
 function dateKey(d){
-  // Use local date components to create the key
-  // This ensures the date matches what the user sees on the calendar
   const year = d.getFullYear();
   const month = String(d.getMonth() + 1).padStart(2, '0');
   const day = String(d.getDate()).padStart(2, '0');
   return `${year}-${month}-${day}`;
 }
 
-/* ------------------------
-   SUNRISE-BASED TAMIL DATE
--------------------------*/
 function getTamilDate(y, m, d){
-  // Always use 6 AM timestamp to avoid midnight shift problems
   const date = new Date(y, m, d, 6, 0);
-
-  // Reference: Tamil Chithirai 1, 2024 = April 14, 2024, 6 AM
   const ref = new Date(2024, 3, 14, 6, 0);
 
   let diff = Math.floor((date - ref) / 86400000);
@@ -406,9 +354,6 @@ function getTamilDate(y, m, d){
   };
 }
 
-/* ------------------------
-   CALENDAR RENDERING
--------------------------*/
 function buildCalendar(booked){
   const grid = document.getElementById('calendarGrid');
   const engEl = document.getElementById('engMonth');
@@ -440,7 +385,6 @@ function buildCalendar(booked){
     eng.className = 'eng-daynum';
     eng.textContent = d;
 
-    // Correct Tamil date
     const t = getTamilDate(viewYear, viewMonth, d);
 
     const tamil = document.createElement('div');
@@ -457,7 +401,6 @@ function buildCalendar(booked){
     else if(booked.has(key)){
       pill.classList.add('booked');
       pill.textContent = 'Booked';
-      console.log('Showing booked for:', key);
     }
     else {
       pill.classList.add('available');
@@ -466,7 +409,6 @@ function buildCalendar(booked){
 
       cell.onclick = () => {
         const selectedDate = key;
-
         console.log("Clicked date:", selectedDate);
 
         // Send to parent Wix site
@@ -487,30 +429,23 @@ function buildCalendar(booked){
   }
 }
 
-/* ------------------------
-   INIT
--------------------------*/
-(async ()=>{
-  const ics = await fetchICS();
-  const booked = parseICS(ics);
+/* INIT */
+console.log('Calendar initialized with manual bookings');
+console.log('Booked dates:', Array.from(bookedDates).sort());
 
-  console.log('Booked dates:', Array.from(booked).sort());
-  console.log('User timezone:', Intl.DateTimeFormat().resolvedOptions().timeZone);
+buildCalendar(bookedDates);
 
-  buildCalendar(booked);
+document.getElementById('prevBtn').onclick = () => {
+  viewMonth--;
+  if(viewMonth < 0){ viewMonth = 11; viewYear--; }
+  buildCalendar(bookedDates);
+};
 
-  document.getElementById('prevBtn').onclick = () => {
-    viewMonth--;
-    if(viewMonth < 0){ viewMonth = 11; viewYear--; }
-    buildCalendar(booked);
-  };
-
-  document.getElementById('nextBtn').onclick = () => {
-    viewMonth++;
-    if(viewMonth > 11){ viewMonth = 0; viewYear++; }
-    buildCalendar(booked);
-  };
-})();
+document.getElementById('nextBtn').onclick = () => {
+  viewMonth++;
+  if(viewMonth > 11){ viewMonth = 0; viewYear++; }
+  buildCalendar(bookedDates);
+};
 </script>
 
 </body>
