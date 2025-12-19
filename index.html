@@ -10,7 +10,7 @@
 <style>
   :root {
     --accent:#6a2c91;
-    --booked:#FF0000;
+    --booked:#FFD700;
     --available:#2e7d32;
     --disabled:#bdbdbd;
   }
@@ -111,8 +111,8 @@
   }
 
   .day-cell.cell-booked {
-    background: #ffcccc;
-    border-color: #ff9999;
+    background: #ffffe0;
+    border-color: #FFD700;
   }
 
   .day-cell.cell-available {
@@ -160,7 +160,10 @@
     font-weight: 600;
   }
 
-  .booked { background: var(--booked); }
+  .booked { 
+    background: var(--booked); 
+    color: #000;
+  }
   .available { background: var(--available); }
   .disabled { background: var(--disabled); }
 
