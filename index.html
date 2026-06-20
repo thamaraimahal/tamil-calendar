@@ -457,16 +457,16 @@ function buildCalendar(booked){
     pill.className = 'status-pill';
 
     if(key < dateKey(today)){
-      pill.classList.add('disabled');
-      pill.textContent = 'Past';
-      cell.classList.add('cell-disabled');
-    }
-    else if(booked.has(key)){
-      pill.classList.add('booked');
-      pill.textContent = 'Booked';
-      cell.classList.add('cell-booked');
-    }
-    else {
+  pill.classList.add('disabled');
+  pill.textContent = 'Past';
+  cell.classList.add('cell-disabled');
+}
+else if(booked.has(key)){
+  pill.classList.add('booked');
+  pill.textContent = 'Booked';
+  cell.classList.add('cell-booked');
+}
+else {
       pill.classList.add('available');
       pill.textContent = 'Available';
       cell.classList.add('clickable');
