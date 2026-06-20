@@ -456,15 +456,17 @@ function buildCalendar(booked){
     const pill = document.createElement('div');
     pill.className = 'status-pill';
 
-    if(key < dateKey(today)){
-  pill.classList.add('disabled');
-  pill.textContent = 'Past';
-  cell.classList.add('cell-disabled');
-}
-else if(booked.has(key)){
+if(booked.has(key)){
+  // Show bookings even if the date is in the past
   pill.classList.add('booked');
   pill.textContent = 'Booked';
   cell.classList.add('cell-booked');
+}
+else if(key < dateKey(today)){
+  // Past dates that are not booked
+  pill.classList.add('disabled');
+  pill.textContent = 'Past';
+  cell.classList.add('cell-disabled');
 }
 else {
       pill.classList.add('available');
